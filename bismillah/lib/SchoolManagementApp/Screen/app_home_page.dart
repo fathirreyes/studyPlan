@@ -1,10 +1,9 @@
 import 'package:bismillah/SchoolManagementApp/Utils/colors.dart';
 import 'package:flutter/material.dart';
-import '../Models/model.dart';
+import '../Models/task.dart';
 import '../Services/task_services.dart';
 import '../Services/schedule_service.dart'; // tambahkan ini
 import '../Models/schedule.dart'; // tambahkan ini
-import '../Screen/add_schedule_page.dart';
 import '../Screen/schedule_list_page.dart';
 
 class AppHomePage extends StatefulWidget {
@@ -28,11 +27,18 @@ class _AppHomePageState extends State<AppHomePage> {
   }
 
   void loadTasks() async {
-    final fetchedTasks = await TaskService.fetchTasks();
-    setState(() {
-      tasks = fetchedTasks;
-      isLoading = false;
-    });
+    try {
+      final fetchedTasks = await TaskService().fetchTasks(); // non-static call
+      setState(() {
+        tasks = fetchedTasks;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching tasks: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void loadSchedules() async {
@@ -44,23 +50,10 @@ class _AppHomePageState extends State<AppHomePage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kheaderColor,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) =>
-                      AddSchedulePage(), // Pastikan halaman ini sudah kamu buat
-            ),
-          );
-        },
-      ),
       body: Stack(
         children: [
           Container(
@@ -113,7 +106,7 @@ class _AppHomePageState extends State<AppHomePage> {
                           image: const DecorationImage(
                             fit: BoxFit.cover,
                             image: NetworkImage(
-                              "https://www.meme-arsenal.com/memes/f9b5feaca26abd7fdb18f62989a54cc1.jpg",
+                              "https://cdn-icons-png.flaticon.com/512/9156/9156755.png",
                             ),
                           ),
                         ),
@@ -145,8 +138,7 @@ class _AppHomePageState extends State<AppHomePage> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (context) =>
-                                          const ScheduleListPage(), // Pastikan file ini sudah dibuat
+                                      (context) => const ScheduleListPage(),
                                 ),
                               );
                             },
@@ -212,9 +204,27 @@ class _AppHomePageState extends State<AppHomePage> {
                               itemCount: tasks.length,
                               itemBuilder: (context, index) {
                                 final task = tasks[index];
+
+                                String remainingTimeText;
+                                if (task.deadline != null) {
+                                  final deadlineDate = DateTime.tryParse(
+                                    task.deadline!,
+                                  );
+                                  if (deadlineDate != null) {
+                                    final now = DateTime.now();
+                                    final difference =
+                                        deadlineDate.difference(now).inDays;
+                                    remainingTimeText = "$difference days left";
+                                  } else {
+                                    remainingTimeText = "Invalid date";
+                                  }
+                                } else {
+                                  remainingTimeText = "No deadline";
+                                }
+
                                 return yourTaskItems(
                                   Colors.blue,
-                                  task.remainingTime,
+                                  remainingTimeText,
                                   task.title,
                                 );
                               },
@@ -228,175 +238,228 @@ class _AppHomePageState extends State<AppHomePage> {
       ),
     );
   }
-}
 
-Container yourTaskItems(Color color, String remainingTime, String title) {
-  return Container(
-    margin: EdgeInsets.only(right: 15),
-    padding: EdgeInsets.all(12),
-    height: 170,
-    width: 175,
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.05),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Deadline", style: TextStyle(fontSize: 15, color: Colors.black26)),
-        Row(
-          children: [
-            CircleAvatar(radius: 4, backgroundColor: color),
-            const SizedBox(width: 5),
-            Text(
-              "$remainingTime days left",
-              style: TextStyle(fontSize: 17, color: Colors.black54),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: 130,
-          child: Text(
-            title,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.black54,
-              fontWeight: FontWeight.bold,
-            ),
+  Container yourTaskItems(Color color, String remainingTime, String title) {
+    return Container(
+      margin: const EdgeInsets.only(right: 15),
+      padding: const EdgeInsets.all(12),
+      height: 170,
+      width: 175,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Deadline",
+            style: TextStyle(fontSize: 15, color: Colors.black26),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-Row seeAllItems(title, number) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      RichText(
-        text: TextSpan(
-          text: title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            color: Colors.black,
+          Row(
+            children: [
+              CircleAvatar(radius: 4, backgroundColor: color),
+              const SizedBox(width: 5),
+              Text(
+                remainingTime,
+                style: const TextStyle(fontSize: 17, color: Colors.black54),
+              ),
+            ],
           ),
-          children: [
-            TextSpan(
-              text: "($number)",
+          const SizedBox(height: 20),
+          SizedBox(
+            width: 130,
+            child: Text(
+              title,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.normal,
+                fontSize: 18,
+                color: Colors.black54,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      Text(
-        "See All",
-        style: TextStyle(
-          color: secondTextColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
-        ),
-      ),
-    ],
-  );
-}
+    );
+  }
 
-Container todayclassesItems(
-  String time,
-  String title,
-  String profile,
-  String name,
-  String room,
-  String day,
-) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 15),
-    height: 110,
-    decoration: BoxDecoration(
-      color: kCardColor,
-      borderRadius: BorderRadius.circular(30),
-    ),
-    child: Row(
+  // Container yourTaskItems(Color color, String remainingTime, String title) {
+  //   return Container(
+  //     margin: EdgeInsets.only(right: 15),
+  //     padding: EdgeInsets.all(12),
+  //     height: 170,
+  //     width: 175,
+  //     decoration: BoxDecoration(
+  //       color: color.withOpacity(0.05),
+  //       borderRadius: BorderRadius.circular(20),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text("Deadline", style: TextStyle(fontSize: 15, color: Colors.black26)),
+  //         Row(
+  //           children: [
+  //             CircleAvatar(radius: 4, backgroundColor: color),
+  //             const SizedBox(width: 5),
+  //             Text(
+  //               "$remainingTime days left",
+  //               style: TextStyle(fontSize: 17, color: Colors.black54),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 20),
+  //         SizedBox(
+  //           width: 130,
+  //           child: Text(
+  //             title,
+  //             maxLines: 3,
+  //             overflow: TextOverflow.ellipsis,
+  //             style: const TextStyle(
+  //               fontSize: 18,
+  //               color: Colors.black54,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Row seeAllItems(title, number) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Waktu dan AM
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        RichText(
+          text: TextSpan(
+            text: title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
             children: [
-              Text(
-                day,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey,
-                  fontSize: 12,
+              TextSpan(
+                text: "($number)",
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(time, style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
           ),
         ),
-        Container(width: 1, height: 60, color: Colors.grey.withOpacity(0.5)),
-
-        const SizedBox(width: 10),
-
-        // Bagian kanan (title, lokasi, nama)
-        Expanded(
-          // <--- Ini penting agar bagian kanan menyesuaikan sisa space
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.grey, size: 20),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        room,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundImage: AssetImage("assets/images/avatar.png"),
-                      radius: 12,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      name,
-                      style: const TextStyle(color: Colors.grey, fontSize: 15),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        Text(
+          "See All",
+          style: TextStyle(
+            color: secondTextColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
           ),
         ),
       ],
-    ),
-  );
+    );
+  }
+
+  Container todayclassesItems(
+    String time,
+    String title,
+    String profile,
+    String name,
+    String room,
+    String day,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      height: 110,
+      decoration: BoxDecoration(
+        color: kCardColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
+          // Waktu dan AM
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  day,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(time, style: const TextStyle(fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+          Container(width: 1, height: 60, color: Colors.grey.withOpacity(0.5)),
+
+          const SizedBox(width: 10),
+
+          // Bagian kanan (title, lokasi, nama)
+          Expanded(
+            // <--- Ini penting agar bagian kanan menyesuaikan sisa space
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          room,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        backgroundImage: AssetImage("assets/images/avatar.png"),
+                        radius: 12,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

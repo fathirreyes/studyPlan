@@ -2,6 +2,7 @@ import 'package:bismillah/SchoolManagementApp/Screen/app_home_page.dart';
 // import 'package:bismillah/SchoolManagementApp/Screen/calendar.dart';
 import 'package:bismillah/SchoolManagementApp/Utils/colors.dart';
 import 'package:flutter/material.dart';
+import '../Screen/add_task_page.dart';
 import '../Screen/add_schedule_page.dart';
 
 class SchoolManagementScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _SchoolManagementScreenState extends State<SchoolManagementScreen> {
   final List pages = [
     AppHomePage(),
     AddSchedulePage(),
-    const Scaffold(),
+    AddTaskPage(),
     // const Calendar(),
     const Scaffold(),
   ];

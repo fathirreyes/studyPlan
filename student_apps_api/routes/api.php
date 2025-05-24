@@ -12,7 +12,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Route untuk tasks
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::post('/tasks', [TaskController::class, 'store']);
-Route::get('/tasks/today', [TaskController::class, 'today']);
+Route::put('/tasks/{id}', [TaskController::class, 'update']);
+Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
+Route::patch('/tasks/{id}/done', [TaskController::class, 'markDone']);
+// Route::get('/tasks/today', [TaskController::class, 'today']);
 
 // Route untuk schedules
 Route::get('/schedules', [ScheduleController::class, 'index']);
