@@ -19,7 +19,6 @@ class _SchoolManagementScreenState extends State<SchoolManagementScreen> {
     AddSchedulePage(),
     AddTaskPage(),
     // const Calendar(),
-    const Scaffold(),
   ];
   @override
   Widget build(BuildContext context) {
@@ -37,10 +36,8 @@ class _SchoolManagementScreenState extends State<SchoolManagementScreen> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.insert_chart), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.done), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.insert_chart), label: ""),
         ],
       ),
       body: pages[selectedIndex],

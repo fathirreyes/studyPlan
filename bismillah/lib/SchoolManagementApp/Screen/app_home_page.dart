@@ -116,7 +116,7 @@ class _AppHomePageState extends State<AppHomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Hello Uwih,",
+                            "Hallo,",
                             style: TextStyle(
                               fontSize: 27,
                               fontWeight: FontWeight.w900,
@@ -125,7 +125,7 @@ class _AppHomePageState extends State<AppHomePage> {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            "Here is a list of schedule\nyou need to check...",
+                            "Ini List Jadwal\ yang kamu harus cek...",
                             style: TextStyle(
                               height: 1.8,
                               color: textColor.withOpacity(0.75),
@@ -173,7 +173,7 @@ class _AppHomePageState extends State<AppHomePage> {
               ),
               child: ListView(
                 children: [
-                  seeAllItems("TODAY CLASSES", schedules.length),
+                  seeAllItems("JADWAL", schedules.length),
                   const SizedBox(height: 20),
                   isScheduleLoading
                       ? const Center(child: CircularProgressIndicator())
@@ -193,7 +193,7 @@ class _AppHomePageState extends State<AppHomePage> {
                             }).toList(),
                       ),
                   const SizedBox(height: 20),
-                  seeAllItems("YOUR TASK", tasks.length),
+                  seeAllItems("TUGAS", tasks.length),
                   SizedBox(
                     height: 170,
                     child:
